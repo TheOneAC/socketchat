@@ -13,22 +13,21 @@
 #define PORT 6789
 #define SERVERAADR "127.0.0.1"
 #define MAXLINE 100
+#define CONNECT_LIMIT  10
 
-/*
 typedef struct 
 {
 	char cid;
 	pthread_t thread;
-	int clientid;
+	int client_fd;
 	struct sockaddr_in clientaddr;
 }sockid;
-*/
-//sockid socklist[CONNECT_LIMIT]; 
+sockid socklist[CONNECT_LIMIT]; 
 
 void* server_thread(void* arg){
 	int servering_clientfd = *((int *)arg);
 	char message_receive[MAXLINE];
-
+	//printf("正在与您聊天的客户端是：%s: %d\n",inet_ntoa(c_addr.sin_addr),ntohs(c_addr.sin_port));
 	int message_len;
 	while( ( message_len = recv(servering_clientfd, message_receive, sizeof(message_receive),0) ) > 0 ){
 		message_receive[message_len] = '\0';
@@ -48,7 +47,7 @@ void* server_thread(void* arg){
 int main(int argc, char const *argv[])
 {
 	int server_fd, client_fd;
-	struct sockaddr_in server, client;
+	struct sockaddr_in server, client[CONNECT_LIMIT];
 	server_fd =socket(AF_INET,SOCK_STREAM,0);
 	if(server_fd <0){
 		perror("server socket init failure");
@@ -64,13 +63,18 @@ int main(int argc, char const *argv[])
 	listen(server_fd,3);
 
 	int client_len = sizeof(struct sockaddr_in);
-
+	int socknum =0 ;
 	while((client_fd = accept(server_fd,(struct sockaddr *)&client,(socklen_t*)&client_len)) > 0){
 		printf("------A new connection -----\n");
 		pthread_t tmp_thread ;
 		if(pthread_create(&tmp_thread,NULL, &server_thread,(void*)&client_fd) < 0){
 			perror("create thread failure");
 			return -1;
+		}
+		else {
+			socklist[socknum].thread =  tmp_thread;
+			socklist[socknum].client_fd = client_fd;
+			socknum++;
 		}
 	}
 	

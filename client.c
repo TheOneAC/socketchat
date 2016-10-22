@@ -31,6 +31,7 @@ int main(int argc, char const *argv[])
 	while(1){
 		/*******input*****/
 		printf("$$ > :");
+		memset(message_send,0,sizeof(message_send));
 		scanf("%s",message_send);
 		int len = strlen(message_send);
 		//fgets(message_send,sizeof(message_send),stdin);
@@ -51,7 +52,7 @@ int main(int argc, char const *argv[])
 			perror("fail to send message");
 			return -1;
 		} 
-		
+		memset(message_receive,0,sizeof(message_receive));
 		message_len = recv(client_fd,message_receive,sizeof(message_receive),0);
 		if(message_len < 0){
 			perror("fail to receive message");
