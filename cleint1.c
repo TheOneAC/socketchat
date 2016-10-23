@@ -11,8 +11,8 @@
 #define SERVERADDR "127.0.0.1"
 #define MAXLINE 100
 #define CONNECT_LIMIT  10
-#define SOURCE_ID 'A'
-#define TARGET_ID 'C'
+#define SOURCE_ID 'C'
+#define TARGET_ID 'A'
 /* change SOURCE_ID id and TARGET_ID for every new client [A~Z]
  * if TARGET_ID is 'a' which means 'all', then it will breadcast to all the client
  */
