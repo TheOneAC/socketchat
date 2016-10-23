@@ -1,23 +1,16 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <string.h>
-#include <pthread.h>
+#include "setup.h"
 
-#define PORT 6789
-#define SERVERADDR "127.0.0.1"
-#define MAXLINE 100
-#define CONNECT_LIMIT  10
+extern const int PORT; 
+extern const char *SERVERAADR; 
+extern const int MAXLINE; 
+#define CONNECT_LIMIT 10
+
 #define SOURCE_ID 'C'
 #define TARGET_ID 'A'
-pthread_mutex_t rw_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-
-
-
+/* change SOURCE_ID id and TARGET_ID for every new client [A~Z]
+ * if TARGET_ID is 'a' which means 'all', then it will breadcast to all the client
+ */
+/*********thread for receive********/
 void* client_receive(void*arg){
 	int status;
 	int client_fd = *(int *)arg;
@@ -27,13 +20,12 @@ void* client_receive(void*arg){
 	while(1)
 	{
 		memset(message_receive,0,sizeof(message_receive));
-		
 		message_len = recv(client_fd,message_receive,sizeof(message_receive),0);
 		if(message_len < 0){
 			perror("fail to receive message");
 			break;
 		}
-		/*******deal with ID*****/
+		/*******deal with source ID*****/
 		char from_cid = message_receive[strlen(message_receive)-1];
 		message_receive[strlen(message_receive)-1] = '\0';
 		
@@ -42,7 +34,7 @@ void* client_receive(void*arg){
 	}
 	exit(0);
 }
-
+/*********thread for send********/
 void* client_send(void* arg){
 	int client_fd = (*(int *)arg);
 	char message_send[MAXLINE];
@@ -50,22 +42,16 @@ void* client_send(void* arg){
 	while(1)
 	{
 		memset(message_send,0,sizeof(message_send));
-		
-		//scanf("%s",message_send);
 		fgets(message_send,sizeof(message_send),stdin);
-
-		int len = strlen(message_send)-1;
+		int len = strlen(message_send)-1;// exception for '\n' in the last
 		/*******test for quit and empty*****/
 		if(len == 0){
 			puts("Empty message!");
 			continue;
 		}
 		else if(len == 1 && message_send[0] == 'q')break;
-		/*******ADD source ID and target ID*****/
-		//message_send[len++]= SOURCE_ID;//source id
+		/*******ADD target ID and send*****/
 		message_send[len++]= TARGET_ID;//target id
-		//int message_len;
-		//message_len = send(client_fd,message_send,len,0);
 		if(send(client_fd,message_send,len,0) < 0){
 			perror("fail to send message");
 			break;
@@ -77,16 +63,11 @@ void* client_send(void* arg){
 
 int main(int argc, char const *argv[])
 {
-	int client_fd;
+	/*******init client_fd and server address*****/
+	int client_fd = SetTCPSock();
 	struct sockaddr_in server;
-	client_fd = socket(AF_INET, SOCK_STREAM,0);
-	if(client_fd == -1){
-		perror("fail to init client_fd socket");
-		return -1;
-	}
-	server.sin_family = AF_INET;
-	server.sin_port = htons(PORT);
-	server.sin_addr.s_addr = inet_addr(SERVERADDR);
+	SetTCPServer(&server);
+	/*******connect to server *****/
 	if((connect(client_fd,(struct sockaddr*)&server,sizeof(server))) < 0){
 		perror("fail to init connect to server");
 		return -1;
@@ -99,6 +80,8 @@ int main(int argc, char const *argv[])
 		return -1;
 	}
 	printf("$$ > :");
+
+	/*******threads for read and write *****/
 	pthread_t rthread, wthread;
 	int status;
 	status = pthread_create(&wthread,NULL, &client_send,(void*)&client_fd);
@@ -123,44 +106,4 @@ int main(int argc, char const *argv[])
 	}
 	close(client_fd);
 	return 0;
-	/*
-	while(1){
-		/*******input*****
-		
-		printf("$$ > :");
-		memset(message_send,0,sizeof(message_send));
-		//scanf("%s",message_send);
-		
-		fgets(message_send,sizeof(message_send),stdin);
-		int len = strlen(message_send)-1;
-		/*******test for quit and empty*****
-		if(len == 0){
-			puts("Empty message!");
-			continue;
-		}
-		else if(len == 1 && message_send[0] == 'q')break;
-
-		/*******ADD source ID and target ID*****
-		message_send[len++]= id;//source id
-		message_send[len++]= id + 2;//target id
-
-		int message_len = send(client_fd,message_send,len,0);
-		if(message_len < 0){
-			perror("fail to send message");
-			return -1;
-		} 
-		memset(message_receive,0,sizeof(message_receive));
-		message_len = recv(client_fd,message_receive,sizeof(message_receive),0);
-		if(message_len < 0){
-			perror("fail to receive message");
-			return -1;
-		}
-		/*******deal with ID*****
-		char from_cid = message_receive[strlen(message_receive)-1];
-		message_receive[strlen(message_receive)-1] = '\0';
-		
-		printf("** < [%c]client : %s\n",from_cid, message_receive);
-	}
-	*/
-	
 }

@@ -1,16 +1,10 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <string.h>
-#include <pthread.h>
+#include "setup.h"
 
-#define PORT 6789
-#define SERVERADDR "127.0.0.1"
-#define MAXLINE 100
-#define CONNECT_LIMIT  10
+extern const int PORT; 
+extern const char *SERVERAADR; 
+extern const int MAXLINE; 
+#define CONNECT_LIMIT 10
+
 #define SOURCE_ID 'A'
 #define TARGET_ID 'C'
 /* change SOURCE_ID id and TARGET_ID for every new client [A~Z]
@@ -69,17 +63,10 @@ void* client_send(void* arg){
 
 int main(int argc, char const *argv[])
 {
-	int client_fd;
-	struct sockaddr_in server;
 	/*******init client_fd and server address*****/
-	client_fd = socket(AF_INET, SOCK_STREAM,0);
-	if(client_fd == -1){
-		perror("fail to init client_fd socket");
-		return -1;
-	}
-	server.sin_family = AF_INET;
-	server.sin_port = htons(PORT);
-	server.sin_addr.s_addr = inet_addr(SERVERADDR);
+	int client_fd = SetTCPSock();
+	struct sockaddr_in server;
+	SetTCPServer(&server);
 	/*******connect to server *****/
 	if((connect(client_fd,(struct sockaddr*)&server,sizeof(server))) < 0){
 		perror("fail to init connect to server");
