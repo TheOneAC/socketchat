@@ -49,7 +49,8 @@ void* client_send(void* arg){
 			continue;
 		}
 		else if(len == 1 && message_send[0] == 'q')break;
-		/*******ADD target ID and send*****/
+		/*******ADD SOURCE_ID and target ID and send*****/
+		//message_send[len++]= SOURCE_ID;//source id
 		message_send[len++]= TARGET_ID;//target id
 		if(send(client_fd,message_send,len,0) < 0){
 			perror("fail to send message");

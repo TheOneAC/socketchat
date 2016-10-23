@@ -29,8 +29,11 @@ void* server_thread(void* arg){
 		if(target_cid =='a')broadcast =1;
 		/*******info for server to show the chat*****/
 		for(i =0 ;i< CONNECT_LIMIT; i++){
-			if(socklist[i].client_fd == servering_clientfd)
+			if(socklist[i].client_fd == servering_clientfd){
+				message_receive[message_len-1] = socklist[i].cid;
 				printf("message from %s.%d ",inet_ntoa(socklist[i].clientaddr.sin_addr),ntohs(cur_sock->clientaddr.sin_port));
+			}
+				
 		}
 		printf("%s ",message_receive );
 		if(broadcast)printf("message sendto all the client\n");
@@ -85,6 +88,10 @@ int main(int argc, char const *argv[])
 			return -1;
 		}
 		else socknum++;
+	}
+	for(;socknum>0;socknum--){
+		status = pthread_join(socklist[socknum].thread,NULL);
+		errnz(status,"join wthread failure");
 	}
 	return 0;
 }

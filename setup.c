@@ -1,6 +1,6 @@
 #include "setup.h"
 
-const int PORT = 6784;
+const int PORT = 6789;
 const int MAXLINE = 100;
 #define SERVERAADR  "127.0.0.1"
 
