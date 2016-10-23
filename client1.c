@@ -31,7 +31,7 @@ int main(int argc, char const *argv[])
 	}
 	puts("connection server success!");
 	char message_send[MAXLINE],message_receive[MAXLINE];
-	char id = 'A';
+	char id = 'C';
 	while(1){
 		/*******input*****/
 		printf("$$ > :");
@@ -49,7 +49,7 @@ int main(int argc, char const *argv[])
 
 		/*******ADD source ID and target ID*****/
 		message_send[len++]= id;//source id
-		message_send[len++]= id + 2;//target id
+		message_send[len++]= id - 2;//target id
 
 		int message_len = send(client_fd,message_send,len,0);
 		if(message_len < 0){
