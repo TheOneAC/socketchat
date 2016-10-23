@@ -16,7 +16,6 @@ void* client_receive(void*arg){
 	int client_fd = *(int *)arg;
 	char message_receive[MAXLINE];
 	int message_len;
-
 	while(1)
 	{
 		memset(message_receive,0,sizeof(message_receive));
@@ -64,46 +63,29 @@ void* client_send(void* arg){
 int main(int argc, char const *argv[])
 {
 	/*******init client_fd and server address*****/
+	int status;
 	int client_fd = SetTCPSock();
 	struct sockaddr_in server;
 	SetTCPServer(&server);
 	/*******connect to server *****/
-	if((connect(client_fd,(struct sockaddr*)&server,sizeof(server))) < 0){
-		perror("fail to init connect to server");
-		return -1;
-	}
+	status = connect(client_fd,(struct sockaddr*)&server,sizeof(server));
+	errn(status,"fail to init connect to server");
 	puts("login success!");
 	char client_info[MAXLINE];
 	client_info[0] = SOURCE_ID;
-	if( send(client_fd,client_info,MAXLINE,0) < 0){
-		perror("send client_info faliure");
-		return -1;
-	}
+	status = send(client_fd,client_info,MAXLINE,0);
+	errn(status,"send client_info faliure");
 	printf("$$ > :");
-
 	/*******threads for read and write *****/
 	pthread_t rthread, wthread;
-	int status;
 	status = pthread_create(&wthread,NULL, &client_send,(void*)&client_fd);
-	if(status < 0){
-		perror("create rthread failure");
-		return -1;
-	}
+	errnz(status,"create rthread failure");
 	status = pthread_create(&rthread,NULL, &client_receive,(void*)&client_fd);
-	if(status < 0){
-		perror("create wthread failure");
-		return -1;
-	}
+	errnz(status,"create wthread failure");
 	status = pthread_join(wthread,NULL);
-	if(status != 0){
-		perror("join wthread failure");
-		return -1;
-	}
+	errnz(status,"join wthread failure");
 	status = pthread_join(rthread,NULL);
-	if(status != 0){
-		perror("join rthread failure");
-		return -1;
-	}
+	errnz(status,"join rthread failure");
 	close(client_fd);
 	return 0;
 }

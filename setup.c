@@ -1,6 +1,6 @@
 #include "setup.h"
 
-const int PORT = 6789;
+const int PORT = 6784;
 const int MAXLINE = 100;
 #define SERVERAADR  "127.0.0.1"
 
@@ -26,10 +26,12 @@ void errn(const int status, const char *detail){
 		perror(detail);
 		exit(-1);
 	}
+	else return ;
 }
 void errnz(const int status, const char *detail){
 	if(status != 0){
 		perror(detail);
 		exit(-1);
 	}
+	else return;
 }

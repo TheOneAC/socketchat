@@ -31,7 +31,6 @@ void* server_thread(void* arg){
 		for(i =0 ;i< CONNECT_LIMIT; i++){
 			if(socklist[i].client_fd == servering_clientfd)
 				printf("message from %s.%d ",inet_ntoa(socklist[i].clientaddr.sin_addr),ntohs(cur_sock->clientaddr.sin_port));
-			
 		}
 		printf("%s ",message_receive );
 		if(broadcast)printf("message sendto all the client\n");
@@ -45,7 +44,7 @@ void* server_thread(void* arg){
 			if(i == cur_sock->num)continue;
 			else if(broadcast || target_cid == socklist[i].cid){
 				status = send(socklist[i].client_fd, message_receive, message_len, 0);
-				errn(status,"send failure");
+				//errn(status,"send failure");
 			}
 		}
 	}
