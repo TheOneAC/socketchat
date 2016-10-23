@@ -39,22 +39,35 @@ void* server_thread(void* arg){
 		}
 	}
 	*/
-	int message_len;
+	int message_len,i, broadcast;
 	while( ( message_len = recv(servering_clientfd, message_receive, sizeof(message_receive),0) ) > 0 ){
-		cur_sock->cid = message_receive[message_len -2];
-		char target_cid = message_receive[--message_len];
-		message_receive[message_len] = '\0';
-
-		int i, broadcast = 0;
+		//cur_sock->cid = message_receive[message_len -2];
+		char target_cid = message_receive[message_len-1];
+		broadcast = 0;
 		if(target_cid =='a')broadcast =1;
+		for(i =0 ;i< CONNECT_LIMIT; i++){
+			if(socklist[i].client_fd == servering_clientfd)
+				printf("message from %s.%d ",inet_ntoa(socklist[i].clientaddr.sin_addr),ntohs(cur_sock->clientaddr.sin_port));
+			
+		}
+		printf("%s ",message_receive );
+		if(broadcast)printf("message sendto all the client\n");
+		for(i =0 ;i< CONNECT_LIMIT; i++){
+			if(socklist[i].cid == target_cid)
+				printf("message sendto %s.%d \n",inet_ntoa(socklist[i].clientaddr.sin_addr),ntohs(cur_sock->clientaddr.sin_port));
+			
+		}
+		//printf("message from %s: %d\n",inet_ntoa(socklist[i].clientaddr.sin_addr),ntohs(cur_sock->clientaddr.sin_port));
+		//puts(message_receive);
+		//message_receive[message_len++] = '\0';
 		for(i =0 ;i< CONNECT_LIMIT; i++){
 			if(i == cur_sock->num)continue;
 			else if(broadcast || target_cid == socklist[i].cid){
 				status = send(socklist[i].client_fd, message_receive, message_len, 0);
-				//printf("正在与您聊天的客户端是：%s: %d\n",inet_ntoa(socklist[i].clientaddr.sin_addr),ntohs(cur_sock->clientaddr.sin_port));
 			}
+
 		}
-		puts(message_receive);
+		
 		//send(servering_clientfd, message_receive, message_len, 0);
 	}
 	if(message_len == 0){
@@ -88,9 +101,16 @@ int main(int argc, char const *argv[])
 	int client_len = sizeof(struct sockaddr_in);
 	int socknum =0 ;
 	while((socklist[socknum].client_fd = accept(server_fd,(struct sockaddr *)&socklist[socknum].clientaddr,(socklen_t*)&client_len)) > 0){
-		printf("------A new connection -----\n");
+		printf("------A new connection from:");
 		//pthread_t tmp_thread ;
 		//socklist[socknum].client_fd = client_fd;
+		char client_info[MAXLINE];
+		if( recv(socklist[socknum].client_fd, client_info, sizeof(client_info),0) < 0){
+			perror("receice client_info failure");
+			return -1;
+		}
+		socklist[socknum].cid = client_info[0];
+		printf("%c ------\n",client_info[0]);
 		socklist[socknum].num = socknum;
 		if(pthread_create(&socklist[socknum].thread,NULL, &server_thread,(void*)&socklist[socknum]) < 0){
 			perror("create thread failure");

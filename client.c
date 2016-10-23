@@ -11,7 +11,69 @@
 #define SERVERADDR "127.0.0.1"
 #define MAXLINE 100
 #define CONNECT_LIMIT  10
+#define SOURCE_ID 'A'
+#define TARGET_ID 'C'
 pthread_mutex_t rw_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+
+
+
+void* client_receive(void*arg){
+	int status;
+	int client_fd = *(int *)arg;
+	char message_receive[MAXLINE];
+	int message_len;
+
+	while(1)
+	{
+		memset(message_receive,0,sizeof(message_receive));
+		
+		message_len = recv(client_fd,message_receive,sizeof(message_receive),0);
+		if(message_len < 0){
+			perror("fail to receive message");
+			break;
+		}
+		/*******deal with ID*****/
+		char from_cid = message_receive[strlen(message_receive)-1];
+		message_receive[strlen(message_receive)-1] = '\0';
+		
+		printf("\nmeesage from [%c]client : %s\n$$ > :",from_cid, message_receive);
+		fflush(stdout);
+	}
+	exit(0);
+}
+
+void* client_send(void* arg){
+	int client_fd = (*(int *)arg);
+	char message_send[MAXLINE];
+	int status;
+	while(1)
+	{
+		memset(message_send,0,sizeof(message_send));
+		
+		//scanf("%s",message_send);
+		fgets(message_send,sizeof(message_send),stdin);
+
+		int len = strlen(message_send)-1;
+		/*******test for quit and empty*****/
+		if(len == 0){
+			puts("Empty message!");
+			continue;
+		}
+		else if(len == 1 && message_send[0] == 'q')break;
+		/*******ADD source ID and target ID*****/
+		//message_send[len++]= SOURCE_ID;//source id
+		message_send[len++]= TARGET_ID;//target id
+		//int message_len;
+		//message_len = send(client_fd,message_send,len,0);
+		if(send(client_fd,message_send,len,0) < 0){
+			perror("fail to send message");
+			break;
+		} 
+		printf("$$ > :");
+	}
+	exit(0);
+}
 
 int main(int argc, char const *argv[])
 {
@@ -29,25 +91,56 @@ int main(int argc, char const *argv[])
 		perror("fail to init connect to server");
 		return -1;
 	}
-	puts("connection server success!");
-	char message_send[MAXLINE],message_receive[MAXLINE];
-	char id = 'A';
+	puts("login success!");
+	char client_info[MAXLINE];
+	client_info[0] = SOURCE_ID;
+	if( send(client_fd,client_info,MAXLINE,0) < 0){
+		perror("send client_info faliure");
+		return -1;
+	}
+	printf("$$ > :");
+	pthread_t rthread, wthread;
+	int status;
+	status = pthread_create(&wthread,NULL, &client_send,(void*)&client_fd);
+	if(status < 0){
+		perror("create rthread failure");
+		return -1;
+	}
+	status = pthread_create(&rthread,NULL, &client_receive,(void*)&client_fd);
+	if(status < 0){
+		perror("create wthread failure");
+		return -1;
+	}
+	status = pthread_join(wthread,NULL);
+	if(status != 0){
+		perror("join wthread failure");
+		return -1;
+	}
+	status = pthread_join(rthread,NULL);
+	if(status != 0){
+		perror("join rthread failure");
+		return -1;
+	}
+	close(client_fd);
+	return 0;
+	/*
 	while(1){
-		/*******input*****/
+		/*******input*****
+		
 		printf("$$ > :");
 		memset(message_send,0,sizeof(message_send));
 		//scanf("%s",message_send);
 		
 		fgets(message_send,sizeof(message_send),stdin);
 		int len = strlen(message_send)-1;
-		/*******test for quit and empty*****/
+		/*******test for quit and empty*****
 		if(len == 0){
 			puts("Empty message!");
 			continue;
 		}
 		else if(len == 1 && message_send[0] == 'q')break;
 
-		/*******ADD source ID and target ID*****/
+		/*******ADD source ID and target ID*****
 		message_send[len++]= id;//source id
 		message_send[len++]= id + 2;//target id
 
@@ -62,11 +155,12 @@ int main(int argc, char const *argv[])
 			perror("fail to receive message");
 			return -1;
 		}
-		/*******deal with ID*****/
+		/*******deal with ID*****
 		char from_cid = message_receive[strlen(message_receive)-1];
 		message_receive[strlen(message_receive)-1] = '\0';
 		
 		printf("** < [%c]client : %s\n",from_cid, message_receive);
 	}
-	return 0;
+	*/
+	
 }

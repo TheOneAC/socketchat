@@ -11,8 +11,8 @@
 #define SERVERADDR "127.0.0.1"
 #define MAXLINE 100
 #define CONNECT_LIMIT  10
-#define SOURCE_ID 'C'
-#define TARGET_ID 'A'
+#define SOURCE_ID 'B'
+#define TARGET_ID 'a'
 pthread_mutex_t rw_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
