@@ -32,6 +32,6 @@ void headInsert(Client *cur, Client* head);
 Client* findClient(Client* head, const sockaddr *addrptr);
 void deleteClient(Client * head, const sockaddr* addrptr);
 Client* findClientbyname(Client* head, const char* name);
-void dealname( char *buffer, char *name, char *msg);
+void dealname(const char *buffer, char *name, char *msg);
 
 #endif

@@ -1,25 +1,27 @@
 #include "setup.h"
 
-const int server_port = 5678;
+const int server_port = 6789;
 const size_t MAXLINE = 1024;
-const int MAXCLIENTNUMBER = 64;
+const int MAXCLIENTNUMBER = 256;
 const char *server = "127.0.0.1";
-const char *HELLO = "@HELLO";
-const char *END = "@END";
+const char *HELLO = ">HELLO";
+const char *QUIT = ">QUIT";
 
 
-
+/************systerm error**********/ 
 void err(const char *msg){
 	perror(msg);
 	exit(1);
 }
+
 void catstr(char *str, const char *strc, const char *strn){
 	strcat(str, strc);
 	strcat(str, " ");
 	strcat(str, strn);
 }
-void inputErr(const char* mes, const char* detail){
-	fputs(mes,stderr);
+/************input with no clientname error**********/
+void inputErr(const char* msg, const char* detail){
+	fputs(msg,stderr);
 	fputs(": ",stderr);
 	fputs(detail, stderr);
 	fputs("\n",stderr);
@@ -41,6 +43,7 @@ int setUDPSocket(){
 		err("socket init failure");
 	return sock;
 }
+/************tell server client login**********/
 void sendinfo(const char* username, int sock, const sockaddr *servaddr, socklen_t servlen){
 	char message_send[MAXLINE];
 	memset(message_send,0,sizeof(message_send));
@@ -50,6 +53,8 @@ void sendinfo(const char* username, int sock, const sockaddr *servaddr, socklen_
 	if(status < 0)
 		err("send message failure");
 }
+
+/************ init clientnode**********/
 void setClient(Client *cur, const sockaddr *addrptr, const char *name){
 	memcpy(&(cur->clientaddr),addrptr,sizeof(*addrptr));
 	memset(cur->username, 0, sizeof(cur->username));
@@ -57,6 +62,7 @@ void setClient(Client *cur, const sockaddr *addrptr, const char *name){
 	cur->next = NULL;
 	return;
 }
+/************ head insert clientnode**********/
 void headInsert(Client *cur, Client* head){
 	cur->next = head->next;
 	head->next = cur;
@@ -82,16 +88,18 @@ void deleteClient(Client * head, const sockaddr* addrptr)
 		}
 	}
 }
-Client* findClientbyname(Client* head, const char* name){
+Client* findClientbyname(Client* head, const char* username){
 	Client *cur = head->next;
 	for(;cur != NULL; cur = cur->next){
-		if(strcmp(name, cur->username)== 0)
+		if(strcmp(username, cur->username)== 0)
 			return cur;
 	}
 	return NULL;
 }
-void dealname( char *buffer, char *name, char *msg){
-	size_t bufferlen = strlen(buffer), index= -1, i=0;
+/************ deal with clientname**********/
+void dealname(const char *buffer, char *name, char *msg){
+	size_t bufferlen = strlen(buffer);
+	int index= -1, i=0;
 	for(;i< bufferlen;i++){
 		if(buffer[i] == ' '){
 			index = i;
@@ -100,12 +108,14 @@ void dealname( char *buffer, char *name, char *msg){
 	}
 	if(index == -1){
 		strncpy(name, buffer+1, index -1);
+		printf("name = %s : ", name);
 		strncpy(msg, buffer+index+1, bufferlen-index);
 		size_t msglen =strlen(msg);
 		if(msg[msglen-1] != '\n'){
 			msg[msglen] = '\n';
 			msg[msglen+1] = 0;
 		}
+		printf("msg = %s : ", msg);
 	}else
 		strncpy(name, buffer+1, strlen(buffer)-1);
 	return;
