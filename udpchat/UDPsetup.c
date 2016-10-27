@@ -2,11 +2,11 @@
 
 const int server_port = 6789;
 const char *server = "127.0.0.1";
-const int MAXLINE = 256;
 const char *LOGIN = "@LOGIN";
 const char *QUIT = "@QUIT";
+#define MAXLINE 256
 
-void err_ne(cosnt char* err_msg){
+void err_ne(const char* err_msg){
 	perror(err_msg);
 	exit(1);
 }
@@ -34,8 +34,8 @@ void catstr(char *str, const char* stri, const char* strn){
 	strcat(str, " ");
 	strcat(str, strn);
 }
-void send_login(const char *username,int client_sock, (sockaddr*)&servaddr, socklen_t servlen){
-	char msg_send[maxline];
+void send_login(const char *username,int client_sock, sockaddr* servaddr, socklen_t servlen){
+	char msg_send[MAXLINE];
 	memset(msg_send, 0, sizeof(msg_send));
 	catstr(msg_send, LOGIN, username);
 	int status = sendto(client_sock, msg_send,sizeof(msg_send), 0, servaddr, servlen);
