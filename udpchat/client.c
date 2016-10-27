@@ -2,7 +2,7 @@
 #include "UDPsetup.h"
 
 extern const int server_port;
-#define MAXLINE 256
+//#define MAXLINE 256
 extern const char *LOGIN;
 extern const char *QUIT;
 
@@ -21,7 +21,6 @@ void *send_msg(void *arg){
 	}
 }
 void *rece_msg(void *arg){
-	//pthread_detach()
 	char msg_rev[MAXLINE];
 	int len, client_sock = *(int*)arg;
 	while(1){
@@ -36,7 +35,7 @@ int  main(int argc, char const *argv[])
 {
 	/******error run*************/
 	if(argc != 2){
-		fputs("Run like this: ./client \"zero\"> \n",stdout);
+		fputs("Run like this: ./client zero\n",stdout);
 		exit(1);
 	}
 	/******sock*************/
