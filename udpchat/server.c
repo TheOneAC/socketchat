@@ -110,7 +110,7 @@ int  main(int argc, char const *argv[])
 		int length = recvfrom(server_sock, msg_rece, MAXLINE, 0,(sockaddr *)&clientaddr, &sock_len);
 		if (length < 0)
 			err_ne("recv_msg failure");
-		puts(msg_rece);
+		printf("message being transfer is :  %s",msg_rece);
 		msg_rece[length] = 0;
 		memset(msg_send, 0, MAXLINE);
 		/******login insert*************/

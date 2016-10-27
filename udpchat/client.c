@@ -36,7 +36,7 @@ int  main(int argc, char const *argv[])
 {
 	/******error run*************/
 	if(argc != 2){
-		fputs("Run like this: ./client \"zero\"> \n",stdout);
+		fputs("Run like this: ./client zero\n",stdout);
 		exit(1);
 	}
 	/******sock*************/
