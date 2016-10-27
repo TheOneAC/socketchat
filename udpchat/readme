@@ -1,0 +1,10 @@
+- client : 
+	- send-thread  recv-thread
+- server :
+	- login_message ---> insert clientlist
+	- quit_message  ---> delete clientnode
+	- broadcast_msg ---> broadcast
+	- unicast_msg   ---> unicast
+- make and run server first
+- run client with a your name
+- input @QUIT to leave
