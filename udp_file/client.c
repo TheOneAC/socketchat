@@ -10,10 +10,10 @@ int main(int argc, char const *argv[])
 		err_msg("clit_sock init failed");
 	char filename[MAXLINE];
 	send_filename(filename,clit_sock,&clit_serv_addr);
-	FILE * fp = fopen(filename,"w+");
-	if(fp == NULL){
+	int fp = creat(filename,S_IWUSR);
+	if(fp < 0 ){
 		printf("file %s  ",filename);
-		err_msg("cann`t open");
+		err_msg("cann`t create");
 	}
 	char buffer[MAXLINE];
 	bzero(buffer,MAXLINE);
@@ -27,15 +27,17 @@ int main(int argc, char const *argv[])
 		if(len < 0){
 			err_msg("file trans failed");
 		}else if(len == 0) break;
+		/**********pack res**************/
+		pack_res(clit_sock, &clit_serv_addr);
 		printf("Package %d received succes!....\n",pack_cnt++);
 #ifndef NDEBUG
 		puts(buffer);
 		printf("\n%d\n",len);
 #endif
-		int write_len = fwrite(buffer,sizeof(char),len,fp);
+		int write_len = write(fp, buffer,len);
         if (write_len < len)
         	err_msg("file write failed");
-        fflush(fp);  
+        //fflush(fp);  
 		bzero(buffer,MAXLINE);
 	}
 	end = clock();

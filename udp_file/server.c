@@ -23,21 +23,26 @@ int main(int argc, char const *argv[])
 		puts("client connect success");
 		puts(filename);
 		clock_t start,end;
-		FILE* fp =fopen(filename,"r+");
-		if(fp == NULL)
+		//FILE* fp =fopen(filename,"r+");
+		int fp = open(filename, O_RDONLY );
+		if(fp <0)
 			err_msg("file not found");
 		else{
+			int pack_cnt=0;
 			start =clock();
 			/*********file trans**********/
 			while(1){
 				bzero(buffer,sizeof(buffer));
-				len = fread(buffer,sizeof(char),MAXLINE,fp);
+				len = read(fp, buffer, MAXLINE);
 				if (len < 0)
 					err_msg("file read failed");
 				if(sendto(serv_sock,buffer,len,0,(struct sockaddr*)&clit_addr,n)<0)
 					err_msg("send file failed");
 				if(len == 0)break;
 				//puts(buffer);
+				/*********pack ask**********/
+				pack_ack(serv_sock,&clit_addr);
+				printf("package %d acked \n",pack_cnt++);
 			}
 			end = clock();
 			printf ("file trans costs %f seconds.\n",((float)(end-start))/CLOCKS_PER_SEC);

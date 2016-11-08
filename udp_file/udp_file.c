@@ -32,17 +32,35 @@ void send_filename(char *filename,int clit_sock,sockaddr_in *clit_serv_addr){
 	sendto(clit_sock,filename,sizeof(filename),0,(struct sockaddr*)clit_serv_addr,sizeof(*clit_serv_addr));
 }
 
+void pack_res(int clit_sock,sockaddr_in *clit_serv_addr){
+	char buffer[10] = "ACK";
+	socklen_t n = sizeof(*clit_serv_addr) ;
+	if(sendto(clit_sock,buffer,10,0,(struct sockaddr*)clit_serv_addr,n)<0)
+		err_msg("send ASK failed");
+}
+
+void pack_ack(int serv_sock, sockaddr_in *clit_addr){
+	char buffer[10];
+	socklen_t n = sizeof(clit_addr) ;
+	//if(sendto(serv_sock,buffer,10,0,(struct sockaddr*)clit_addr,n)<0)
+	//	err_msg("send ASK failed");
+	int len = recvfrom(serv_sock,buffer,10,0,(struct sockaddr*)clit_addr,&n);
+	if(len <0)
+			err_msg("recv ACK failed");
+	else if(strncmp(buffer,"ACK",3) != 0)
+		err_msg("ack error");
+}
 
 void Gen_md5(const char* filename, char* md5_buffer)
 {  
-	FILE *fp = fopen(filename,"r+");
+	int fp = open(filename, O_RDONLY );
     MD5_CTX ctx = { 0 };  
     int len = 0;  
     unsigned char buffer[1024] = {0};  
     unsigned char digest[16] = {0};  
     int SIZE;  
     MD5_Init (&ctx);  
-    while ((len = fread (buffer, 1, MAXLINE, fp)) > 0)  
+    while ((len = read (fp, buffer, MAXLINE)) > 0)  
     {  
         MD5_Update (&ctx, buffer, len);  
     }    
