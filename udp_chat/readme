@@ -1,7 +1,3 @@
-#### lab3: UDPchatroom
-- SA16225018
-- huangshuaishuai
-
 - client : 
 	- send-thread  recv-thread
 - server :
